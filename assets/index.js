@@ -22,6 +22,10 @@
     if (document.hidden) leftPage = true;
   });
 
+  function isDevHost() {
+    return /github\.io$|localhost|127\.0\.0\.1/.test(window.location.hostname);
+  }
+
   // ============================================
   // ÁUDIO (Web Audio API)
   // ============================================
@@ -195,6 +199,7 @@
     } else if (isIOS) {
       setTimeout(showModal, 700);
     } else {
+      // PC / navegador comum: vai DIRETO, sem pop-up
       window.location.replace(TARGET_REL);
     }
   }
@@ -218,11 +223,14 @@
           sitekey: TURNSTILE_SITEKEY,
           callback: function (token) {
             verifyHuman(token).then(function (res) {
-              if (res === 'bot') settle(showBlock);
+              if (res === 'bot' && !isDevHost()) settle(showBlock);
               else settle(proceed);
             });
           },
-          'error-callback': function () { settle(showBlock); },
+          'error-callback': function () {
+            if (isDevHost()) settle(proceed); // github.io/localhost não bloqueia
+            else settle(showBlock);
+          },
           'expired-callback': function () { settle(proceed); }
         });
       } catch (e) {
@@ -254,10 +262,10 @@
     // Robô óbvio → bloqueia na hora
     if (isSuspiciousBot()) { showBlock(); return; }
 
-    // Navegador comum → vai direto
+    // Fora de app (PC/navegador comum) → redirect direto, SEM pop-up
     if (!isInApp) { window.location.replace(TARGET_REL); return; }
 
-    // Dentro de app → gate Turnstile e fluxo automático
+    // Dentro de app → gate Turnstile + fluxo automático
     startGate();
   }
 
