@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta name="theme-color" content="#dceeff">
+  <title>Abrindo...</title>
+  <link rel="stylesheet" href="./assets/styles.css">
+</head>
+<body class="page-index">
+
+  <main class="center-wrap">
+    <div class="loader-card" id="loader">
+      <div class="spinner" aria-hidden="true"></div>
+      <h1 class="loader-title">Abrindo...</h1>
+      <p class="loader-sub">Preparando sua experiência ✨</p>
+    </div>
+  </main>
+
+  <!-- Pop-up de saída do navegador interno -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h2 class="modal-title">Continuar no navegador?</h2>
+      <p class="modal-desc">Para ver todo o conteúdo sem travamentos e com mais privacidade, continue em seu navegador padrão. 🔒</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="btnYes">Abrir no navegador</button>
+        <button class="btn btn-ghost" id="btnNo">Não</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloqueio (robô / verificação falhou) -->
+  <div class="modal" id="blockModal" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h2 class="modal-title">Verificação necessária</h2>
+      <p class="modal-desc">Não foi possível confirmar que você é humano. Tente novamente.</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="btnRetry">Tentar novamente</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="turnstileBox" class="turnstile-hidden" aria-hidden="true"></div>
+
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="./assets/index.js"></script>
+</body>
+</html>

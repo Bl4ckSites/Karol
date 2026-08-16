@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#dceeff">
+  <title>404 – Página não encontrada</title>
+  <link rel="stylesheet" href="./assets/styles.css">
+</head>
+<body class="page-index">
+  <main class="center-wrap">
+    <h1 class="error-code">404</h1>
+    <p class="loader-sub">Página não encontrada.</p>
+    <p style="margin-top:20px;">
+      <a href="/" class="btn btn-primary" style="display:inline-block;text-decoration:none;">Voltar ao início</a>
+    </p>
+  </main>
+  <script>
+    setTimeout(function () {
+      if (window.location.pathname !== '/') window.location.href = '/';
+    }, 5000);
+  </script>
+</body>
+</html>
