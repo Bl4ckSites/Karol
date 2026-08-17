@@ -19,7 +19,6 @@
     if (document.hidden) leftPage = true;
   });
 
-  // ---------- Áudio ----------
   var audioCtx = null;
   function getAudioContext() {
     if (!audioCtx) {
@@ -68,7 +67,6 @@
     });
   }
 
-  // ---------- Ripple + vibração ----------
   function createRipple(e) {
     var target = e.currentTarget;
     if (!target) return;
@@ -101,7 +99,6 @@
     });
   }
 
-  // ---------- Detecção segura de automação ----------
   function isSuspiciousBot() {
     if (navigator.webdriver === true) return true;
     if (/headlesschrome|puppeteer|selenium|phantomjs|crawler|spider/i.test(ua)) return true;
@@ -109,7 +106,6 @@
     return false;
   }
 
-  // ---------- UI ----------
   function showModal() {
     if (leftPage || modalShown) return;
     modalShown = true;
@@ -129,7 +125,6 @@
     });
   }
 
-  // ---------- Saída do WebView ----------
   function exitToExternal() {
     if (isAndroid) {
       window.location.href =
@@ -149,7 +144,6 @@
     }
   }
 
-  // ---------- Init ----------
   function init() {
     bindFeedback();
 
