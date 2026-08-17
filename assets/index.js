@@ -1,11 +1,9 @@
 // ============================================
-// INDEX.JS — Gate anti-robô + saída do WebView
-// Tudo automático; pop-up apenas como fallback
+// INDEX.JS — Redirecionamento automático
 // ============================================
 (function () {
   'use strict';
 
-  var TURNSTILE_SITEKEY = 'COLE_AQUI_SUA_SITE_KEY';
   var TARGET_REL = './links.html';
   var TARGET_ABS = window.location.origin + '/links.html';
 
@@ -16,18 +14,13 @@
 
   var leftPage = false;
   var modalShown = false;
-  var proceeded = false;
 
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) leftPage = true;
   });
 
-  function isDevHost() {
-    return /github\.io$|localhost|127\.0\.0\.1/.test(window.location.hostname);
-  }
-
   // ============================================
-  // ÁUDIO (Web Audio API)
+  // ÁUDIO
   // ============================================
   var audioCtx = null;
 
@@ -36,9 +29,7 @@
       var AC = window.AudioContext || window.webkitAudioContext;
       if (AC) audioCtx = new AC();
     }
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume().catch(function () {});
-    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(function () {});
     return audioCtx;
   }
 
@@ -56,7 +47,6 @@
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
     osc.start(now);
     osc.stop(now + 0.12);
-    osc.onended = function () { osc.disconnect(); gain.disconnect(); };
   }
 
   function playModalSound() {
@@ -76,7 +66,6 @@
       gain.gain.exponentialRampToValueAtTime(0.001, end);
       osc.start(start);
       osc.stop(end);
-      osc.onended = function () { osc.disconnect(); gain.disconnect(); };
     });
   }
 
@@ -106,7 +95,7 @@
   }
 
   function bindFeedback() {
-    document.querySelectorAll('.btn, .link-btn, .icon-btn').forEach(function (el) {
+    document.querySelectorAll('.btn').forEach(function (el) {
       el.addEventListener('click', function (e) {
         playClickSound();
         createRipple(e);
@@ -116,12 +105,12 @@
   }
 
   // ============================================
-  // DETECÇÃO DE AUTOMAÇÃO (segura p/ mobile)
+  // DETECÇÃO DE BOTS
   // ============================================
   function isSuspiciousBot() {
     if (navigator.webdriver === true) return true;
     if (/headlesschrome|puppeteer|selenium|phantomjs|crawler|spider/i.test(ua)) return true;
-    if (/python-requests|scrapy|curl\/|wget|httpclient|java\//i.test(ua)) return true;
+    if (/python-requests|scrapy|curl\/|wget/i.test(ua)) return true;
     return false;
   }
 
@@ -136,20 +125,6 @@
     modal.classList.add('show');
     playModalSound();
     vibrate(20);
-    modal.querySelectorAll('.btn').forEach(function (b, i) {
-      b.style.opacity = '0';
-      b.style.transform = 'translateY(10px)';
-      setTimeout(function () {
-        b.style.transition = 'opacity .3s ease, transform .3s ease';
-        b.style.opacity = '1';
-        b.style.transform = 'none';
-      }, 100 + i * 100);
-    });
-  }
-
-  function showBlock() {
-    document.getElementById('loader').classList.add('hidden');
-    document.getElementById('blockModal').classList.add('show');
   }
 
   // ============================================
@@ -175,98 +150,34 @@
   }
 
   // ============================================
-  // TURNSTILE + VALIDAÇÃO SERVER-SIDE
-  // ============================================
-  function verifyHuman(token) {
-    return fetch('/api/human', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-      body: JSON.stringify({ turnstile: token })
-    }).then(function (r) {
-           if (r.status === 404 || r.status === 405) return 'dev';   // GitHub Pages (sem functions)   // GitHub Pages (sem functions)
-      if (r.status === 403) return 'bot';   // Turnstile reprovou
-      return 'ok';
-    }).catch(function () { return 'ok'; }); // falha de rede não pune usuário real
-  }
-
-  function proceed() {
-    if (proceeded) return;
-    proceeded = true;
-
-    if (isAndroid) {
-      setTimeout(function () { if (!leftPage) exitToExternal(); }, 400);
-      setTimeout(showModal, 1600);
-    } else if (isIOS) {
-      setTimeout(showModal, 700);
-    } else {
-      // PC / navegador comum: vai DIRETO, sem pop-up
-      window.location.replace(TARGET_REL);
-    }
-  }
-
-  function startGate() {
-    var settled = false;
-    function settle(fn) {
-      if (!settled) { settled = true; fn(); }
-    }
-
-    function waitTurnstile(cb, tries) {
-      if (window.turnstile) return cb(true);
-      if ((tries || 0) > 40) return cb(false); // ~4s sem script = modo degradado
-      setTimeout(function () { waitTurnstile(cb, (tries || 0) + 1); }, 100);
-    }
-
-    waitTurnstile(function (loaded) {
-      if (!loaded) { settle(proceed); return; }
-      try {
-        window.turnstile.render(document.getElementById('turnstileBox'), {
-          sitekey: TURNSTILE_SITEKEY,
-          callback: function (token) {
-            verifyHuman(token).then(function (res) {
-              if (res === 'bot' && !isDevHost()) settle(showBlock);
-              else settle(proceed);
-            });
-          },
-          'error-callback': function () {
-            if (isDevHost()) settle(proceed); // github.io/localhost não bloqueia
-            else settle(showBlock);
-          },
-          'expired-callback': function () { settle(proceed); }
-        });
-      } catch (e) {
-        settle(proceed);
-      }
-    });
-  }
-
-  // ============================================
   // INICIALIZAÇÃO
   // ============================================
   function init() {
     bindFeedback();
 
-    document.getElementById('btnYes').addEventListener('click', function () {
-      exitToExternal();
-    });
-
+    document.getElementById('btnYes').addEventListener('click', exitToExternal);
     document.getElementById('btnNo').addEventListener('click', function () {
       this.textContent = 'Redirecionando...';
       this.disabled = true;
       setTimeout(exitToExternal, 250);
     });
 
-    document.getElementById('btnRetry').addEventListener('click', function () {
-      window.location.reload();
-    });
+    if (isSuspiciousBot()) {
+      window.location.href = 'https://www.google.com';
+      return;
+    }
 
-    // Robô óbvio → bloqueia na hora
-    if (isSuspiciousBot()) { showBlock(); return; }
+    if (!isInApp) {
+      window.location.replace(TARGET_REL);
+      return;
+    }
 
-    // Fora de app (PC/navegador comum) → redirect direto, SEM pop-up
-    if (!isInApp) { window.location.replace(TARGET_REL); return; }
-
-    // Dentro de app → gate Turnstile + fluxo automático
-    startGate();
+    if (isAndroid) {
+      setTimeout(function () { if (!leftPage) exitToExternal(); }, 400);
+      setTimeout(showModal, 1600);
+    } else if (isIOS) {
+      setTimeout(showModal, 700);
+    }
   }
 
   if (document.readyState === 'loading') {
