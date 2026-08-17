@@ -1,42 +1,43 @@
 // ============================================
-// LINKS.JS — Interações leves (sem API, sem modal)
+// API /api/links — só entrega os links após prova de humano
 // ============================================
-(function () {
-  'use strict';
+const LINKS = [
+  { id: '1', titulo: 'Privacy 50% OFF', url: 'https://privacy.com.br/checkout/soykarolinareal', icone: 'icone-privacy.png' },
+  { id: '2', titulo: 'Grupo VIP', url: 'https://t.me/Soykarolinareal_bot?start=biositesoykarolinareal', icone: 'icone-telegram.png' },
+  { id: '3', titulo: 'Packs e Chamada de Vídeo', url: 'https://serverflow.dad/c/whatsapp-karol', icone: 'icone-whatsapp.png' },
+  { id: '4', titulo: 'OnlyFans', url: 'https://onlyfans.com/karolinaofc/c2', icone: 'icone-onlyfans.png' }
+];
 
-  function init() {
-    // Fallback da foto de perfil
-    var img = document.getElementById('profileImg');
-    if (img) {
-      img.addEventListener('error', function () {
-        img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#dceeff"/><circle cx="60" cy="46" r="22" fill="#7fb5e6"/><ellipse cx="60" cy="98" rx="34" ry="26" fill="#7fb5e6"/></svg>'
-        );
-      });
-    }
+export async function onRequestPost(context) {
+  const { request, env } = context;
 
-    // Ripple nos botões de link
-    var container = document.getElementById('linksContainer');
-    if (container) {
-      container.addEventListener('pointerdown', function (e) {
-        var btn = e.target.closest('.link-btn');
-        if (!btn) return;
-        var rect = btn.getBoundingClientRect();
-        var size = Math.max(rect.width, rect.height);
-        var s = document.createElement('span');
-        s.className = 'ripple';
-        s.style.width = s.style.height = size + 'px';
-        s.style.left = (e.clientX - rect.left - size / 2) + 'px';
-        s.style.top = (e.clientY - rect.top - size / 2) + 'px';
-        btn.appendChild(s);
-        setTimeout(function () { s.remove(); }, 650);
-      });
-    }
+  const url = new URL(request.url);
+  const origin = request.headers.get('Origin') || '';
+  const referer = request.headers.get('Referer') || '';
+  const isXHR = request.headers.get('X-Requested-With') === 'XMLHttpRequest';
+  if (origin !== url.origin && !referer.startsWith(url.origin) && !isXHR) {
+    return json({ error: 'Acesso negado' }, 403);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
+  let body;
+  try { body = await request.json(); } catch (e) { return json({ error: 'JSON inválido' }, 400); }
+  if (!body || !body.turnstile) return json({ error: 'Token ausente' }, 400);
+
+  const ip = request.headers.get('CF-Connecting-IP') || '';
+  const check = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ secret: env.TURNSTILE_SECRET_KEY, response: body.turnstile, remoteip: ip })
+  });
+  const v = await check.json();
+  if (!v.success) return json({ error: 'Verificação falhou' }, 403);
+
+  return json({ links: LINKS, ts: Date.now() }, 200);
+}
+
+function json(data, status) {
+  return new Response(JSON.stringify(data), {
+    status: status,
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+  });
+}
