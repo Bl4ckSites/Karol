@@ -1,5 +1,5 @@
 // ============================================
-// INDEX.JS — Saída do WebView (sem Turnstile)
+// INDEX.JS — Saída do WebView
 // ============================================
 (function () {
   'use strict';
