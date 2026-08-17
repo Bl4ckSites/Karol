@@ -1,5 +1,5 @@
 // ============================================
-// INDEX.JS — Redirecionamento automático
+// INDEX.JS — Saída do WebView (sem Turnstile)
 // ============================================
 (function () {
   'use strict';
@@ -19,11 +19,8 @@
     if (document.hidden) leftPage = true;
   });
 
-  // ============================================
-  // ÁUDIO
-  // ============================================
+  // ---------- Áudio ----------
   var audioCtx = null;
-
   function getAudioContext() {
     if (!audioCtx) {
       var AC = window.AudioContext || window.webkitAudioContext;
@@ -47,6 +44,7 @@
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
     osc.start(now);
     osc.stop(now + 0.12);
+    osc.onended = function () { osc.disconnect(); gain.disconnect(); };
   }
 
   function playModalSound() {
@@ -66,12 +64,11 @@
       gain.gain.exponentialRampToValueAtTime(0.001, end);
       osc.start(start);
       osc.stop(end);
+      osc.onended = function () { osc.disconnect(); gain.disconnect(); };
     });
   }
 
-  // ============================================
-  // RIPPLE + VIBRAÇÃO
-  // ============================================
+  // ---------- Ripple + vibração ----------
   function createRipple(e) {
     var target = e.currentTarget;
     if (!target) return;
@@ -104,9 +101,7 @@
     });
   }
 
-  // ============================================
-  // DETECÇÃO DE BOTS
-  // ============================================
+  // ---------- Detecção segura de automação ----------
   function isSuspiciousBot() {
     if (navigator.webdriver === true) return true;
     if (/headlesschrome|puppeteer|selenium|phantomjs|crawler|spider/i.test(ua)) return true;
@@ -114,9 +109,7 @@
     return false;
   }
 
-  // ============================================
-  // UI
-  // ============================================
+  // ---------- UI ----------
   function showModal() {
     if (leftPage || modalShown) return;
     modalShown = true;
@@ -125,11 +118,18 @@
     modal.classList.add('show');
     playModalSound();
     vibrate(20);
+    modal.querySelectorAll('.btn').forEach(function (b, i) {
+      b.style.opacity = '0';
+      b.style.transform = 'translateY(10px)';
+      setTimeout(function () {
+        b.style.transition = 'opacity .3s ease, transform .3s ease';
+        b.style.opacity = '1';
+        b.style.transform = 'none';
+      }, 100 + i * 100);
+    });
   }
 
-  // ============================================
-  // SAÍDA DO WEBVIEW
-  // ============================================
+  // ---------- Saída do WebView ----------
   function exitToExternal() {
     if (isAndroid) {
       window.location.href =
@@ -149,9 +149,7 @@
     }
   }
 
-  // ============================================
-  // INICIALIZAÇÃO
-  // ============================================
+  // ---------- Init ----------
   function init() {
     bindFeedback();
 
