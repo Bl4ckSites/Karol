@@ -1,34 +1,11 @@
 // ============================================
-// LINKS.JS — Modal +18 + interações
+// LINKS.JS — Interações leves (sem API, sem modal)
 // ============================================
 (function () {
   'use strict';
 
-  // ============================================
-  // MODAL +18 (localStorage simples)
-  // ============================================
-  function checkAge() {
-    var verified = false;
-    try { verified = localStorage.getItem('age_verified') === '1'; } catch (e) {}
-
-    if (!verified) {
-      document.getElementById('ageModal').classList.add('show');
-    }
-  }
-
-  function handleConfirmAge() {
-    try { localStorage.setItem('age_verified', '1'); } catch (e) {}
-    document.getElementById('ageModal').classList.remove('show');
-  }
-
-  function handleDenyAge() {
-    window.location.href = 'https://www.google.com';
-  }
-
-  // ============================================
-  // FALLBACK DA FOTO
-  // ============================================
-  function initImageFallback() {
+  function init() {
+    // Fallback da foto de perfil
     var img = document.getElementById('profileImg');
     if (img) {
       img.addEventListener('error', function () {
@@ -37,42 +14,24 @@
         );
       });
     }
-  }
 
-  // ============================================
-  // RIPPLE NOS LINKS
-  // ============================================
-  function initRipple() {
+    // Ripple nos botões de link
     var container = document.getElementById('linksContainer');
-    if (!container) return;
-
-    container.addEventListener('pointerdown', function (e) {
-      var btn = e.target.closest('.link-btn');
-      if (!btn) return;
-
-      var rect = btn.getBoundingClientRect();
-      var size = Math.max(rect.width, rect.height);
-      var s = document.createElement('span');
-      s.className = 'ripple';
-      s.style.width = s.style.height = size + 'px';
-      s.style.left = (e.clientX - rect.left - size / 2) + 'px';
-      s.style.top = (e.clientY - rect.top - size / 2) + 'px';
-      btn.appendChild(s);
-      setTimeout(function () { s.remove(); }, 650);
-    });
-  }
-
-  // ============================================
-  // INICIALIZAÇÃO
-  // ============================================
-  function init() {
-    initImageFallback();
-    initRipple();
-
-    document.getElementById('confirmAge').addEventListener('click', handleConfirmAge);
-    document.getElementById('denyAge').addEventListener('click', handleDenyAge);
-
-    checkAge();
+    if (container) {
+      container.addEventListener('pointerdown', function (e) {
+        var btn = e.target.closest('.link-btn');
+        if (!btn) return;
+        var rect = btn.getBoundingClientRect();
+        var size = Math.max(rect.width, rect.height);
+        var s = document.createElement('span');
+        s.className = 'ripple';
+        s.style.width = s.style.height = size + 'px';
+        s.style.left = (e.clientX - rect.left - size / 2) + 'px';
+        s.style.top = (e.clientY - rect.top - size / 2) + 'px';
+        btn.appendChild(s);
+        setTimeout(function () { s.remove(); }, 650);
+      });
+    }
   }
 
   if (document.readyState === 'loading') {
