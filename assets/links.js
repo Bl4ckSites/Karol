@@ -4,9 +4,8 @@
 (function () {
   'use strict';
 
-  var TURNSTILE_SITEKEY = 'COLE_AQUI_SUA_SITE_KEY';
+  var TURNSTILE_SITEKEY = '0x4AAAAAAETGQQDnmnyVj3A0';
 
-  // Só para teste no github.io (onde a API não existe)
   var DEV_LINKS = [
     { id: '1', titulo: 'Privacy 50% OFF', url: 'https://privacy.com.br/checkout/soykarolinareal', icone: 'icone-privacy.png' },
     { id: '2', titulo: 'Grupo VIP', url: 'https://t.me/Soykarolinareal_bot?start=biositesoykarolinareal', icone: 'icone-telegram.png' },
