@@ -1,11 +1,16 @@
 // ============================================
-// LINKS.JS — Modal +18 + links (com MODO DEV)
+// LINKS.JS — Modal +18 + links (MODO DEV: 404/405)
 // ============================================
 (function () {
   'use strict';
 
   var authToken = null;
   try { authToken = localStorage.getItem('authToken') || null; } catch (e) {}
+
+  // GitHub Pages responde 404 ou 405 quando não tem API → modo teste
+  function isNoApi(status) {
+    return status === 404 || status === 405;
+  }
 
   var DEV_LINKS = [
     { id: '1', titulo: 'Privacy 50% OFF', url: 'https://privacy.com.br/checkout/soykarolinareal' },
@@ -46,7 +51,7 @@
         credentials: 'same-origin'
       })
         .then(function (r) {
-          if (r.status === 404) { renderLinks(DEV_LINKS); return; } // MODO DEV
+          if (isNoApi(r.status)) { renderLinks(DEV_LINKS); return; } // MODO DEV
           if (r.ok) loadLinks();
           else { authToken = null; show18(); }
         })
@@ -64,7 +69,7 @@
       body: JSON.stringify({ ts: Date.now() })
     })
       .then(function (r) {
-        if (r.status === 404) { hide18(); renderLinks(DEV_LINKS); return null; } // MODO DEV
+        if (isNoApi(r.status)) { hide18(); renderLinks(DEV_LINKS); return null; } // MODO DEV
         if (!r.ok) throw new Error('fail');
         return r.json();
       })
@@ -91,7 +96,7 @@
       credentials: 'same-origin'
     })
       .then(function (r) {
-        if (r.status === 404) { renderLinks(DEV_LINKS); return null; } // MODO DEV
+        if (isNoApi(r.status)) { renderLinks(DEV_LINKS); return null; } // MODO DEV
         if (r.status === 401) { authToken = null; throw new Error('expired'); }
         if (!r.ok) throw new Error('http');
         return r.json();
