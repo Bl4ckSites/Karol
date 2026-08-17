@@ -1,6 +1,5 @@
 // ============================================
-// LINKS.JS — Modal +18 + links protegidos
-// Sem verificação manual de robô nesta página
+// LINKS.JS — Modal +18 + links (com MODO DEV)
 // ============================================
 (function () {
   'use strict';
@@ -8,7 +7,6 @@
   var authToken = null;
   try { authToken = localStorage.getItem('authToken') || null; } catch (e) {}
 
-  // Links reais (modo dev / fallback)
   var DEV_LINKS = [
     { id: '1', titulo: 'Privacy 50% OFF', url: 'https://privacy.com.br/checkout/soykarolinareal' },
     { id: '2', titulo: 'Grupo VIP', url: 'https://t.me/Soykarolinareal_bot?start=biositesoykarolinareal' },
@@ -16,9 +14,6 @@
     { id: '4', titulo: 'OnlyFans', url: 'https://onlyfans.com/karolinaofc/c2' }
   ];
 
-  // ============================================
-  // SVGs DOS ÍCONES
-  // ============================================
   var SVG_PRIVACY = '<svg viewBox="0 0 48 48"><defs><linearGradient id="pv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF8A3C"/><stop offset="1" stop-color="#F4442E"/></linearGradient></defs><circle cx="24" cy="24" r="24" fill="url(#pv)"/><path fill="#fff" fill-rule="evenodd" d="M24 11c-7.2 0-13 5.8-13 13s5.8 13 13 13 13-5.8 13-13-5.8-13-13-13zm0 5.2a7.8 7.8 0 1 1 0 15.6 7.8 7.8 0 0 1 0-15.6z"/><circle cx="24" cy="21.6" r="3.1" fill="#fff"/><path d="M24 24.2l-2.4 6.6h4.8z" fill="#fff"/></svg>';
   var SVG_TELEGRAM = '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#2AABEE"/><path fill="#fff" transform="translate(7,5) scale(1.2)" d="M2 21l21-9-9 21-4-8-8-4z"/></svg>';
   var SVG_WHATS = '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#25D366"/><path fill="#fff" d="M24 10c-7.7 0-14 6.1-14 13.7 0 3 .9 5.7 2.6 8L11 38l6.5-1.7c2 1 4.2 1.5 6.5 1.5 7.7 0 14-6.1 14-13.7S31.7 10 24 10z"/><path fill="#25D366" d="M19.2 17.4c-.3-.7-.6-.7-.9-.7h-.8c-.3 0-.7.1-1 .5-.4.4-1.4 1.3-1.4 3.2s1.4 3.7 1.6 4c.2.3 2.8 4.4 6.9 6 3.4 1.3 4.1 1 4.8 1 .7-.1 2.3-.9 2.6-1.8.3-.9.3-1.7.2-1.8-.1-.2-.4-.3-.8-.5s-2.3-1.1-2.6-1.2c-.4-.1-.6-.2-.9.2-.3.4-1 1.2-1.2 1.5-.2.3-.4.3-.8.1-.4-.2-1.6-.6-3.1-1.9-1.1-1-1.9-2.2-2.1-2.6-.2-.4 0-.6.2-.8l.6-.7c.2-.2.3-.4.4-.7.1-.3.1-.5 0-.7-.1-.2-.9-2.2-1.7-3.1z"/></svg>';
@@ -40,9 +35,6 @@
     });
   }
 
-  // ============================================
-  // MODAL +18
-  // ============================================
   function show18() { document.getElementById('ageModal').classList.add('show'); }
   function hide18() { document.getElementById('ageModal').classList.remove('show'); }
 
@@ -54,7 +46,7 @@
         credentials: 'same-origin'
       })
         .then(function (r) {
-          if (r.status === 404) { renderLinks(DEV_LINKS); return; } // modo dev
+          if (r.status === 404) { renderLinks(DEV_LINKS); return; } // MODO DEV
           if (r.ok) loadLinks();
           else { authToken = null; show18(); }
         })
@@ -72,7 +64,7 @@
       body: JSON.stringify({ ts: Date.now() })
     })
       .then(function (r) {
-        if (r.status === 404) { hide18(); renderLinks(DEV_LINKS); return null; } // modo dev
+        if (r.status === 404) { hide18(); renderLinks(DEV_LINKS); return null; } // MODO DEV
         if (!r.ok) throw new Error('fail');
         return r.json();
       })
@@ -91,19 +83,15 @@
     window.location.href = 'https://www.google.com';
   }
 
-  // ============================================
-  // CARREGAMENTO DOS LINKS
-  // ============================================
   function loadLinks() {
     var c = document.getElementById('linksContainer');
     c.innerHTML = '<p class="loading">Carregando links...</p>';
-
     fetch('/api/links', {
       headers: { 'Authorization': 'Bearer ' + authToken, 'X-Requested-With': 'XMLHttpRequest' },
       credentials: 'same-origin'
     })
       .then(function (r) {
-        if (r.status === 404) { renderLinks(DEV_LINKS); return null; } // modo dev
+        if (r.status === 404) { renderLinks(DEV_LINKS); return null; } // MODO DEV
         if (r.status === 401) { authToken = null; throw new Error('expired'); }
         if (!r.ok) throw new Error('http');
         return r.json();
@@ -123,7 +111,6 @@
     var c = document.getElementById('linksContainer');
     if (!c) return;
     c.innerHTML = '';
-
     (links || []).forEach(function (l) {
       var a = document.createElement('a');
       a.href = l.url;
@@ -141,9 +128,6 @@
     });
   }
 
-  // ============================================
-  // ANALYTICS (fila com retry)
-  // ============================================
   function sendEvent(name, extra) {
     try {
       var q = JSON.parse(localStorage.getItem('evq') || '[]');
@@ -176,11 +160,7 @@
     } catch (e) {}
   }
 
-  // ============================================
-  // INICIALIZAÇÃO
-  // ============================================
   function init() {
-    // Fallback da foto
     var img = document.getElementById('profileImg');
     if (img) {
       img.addEventListener('error', function () {
@@ -190,7 +170,6 @@
       });
     }
 
-    // Ripple (delegado, funciona p/ links renderizados)
     var container = document.getElementById('linksContainer');
     if (container) {
       container.addEventListener('pointerdown', function (e) {
