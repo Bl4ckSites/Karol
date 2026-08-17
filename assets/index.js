@@ -183,7 +183,7 @@
       headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       body: JSON.stringify({ turnstile: token })
     }).then(function (r) {
-      if (r.status === 404) return 'dev';   // GitHub Pages (sem functions)
+           if (r.status === 404 || r.status === 405) return 'dev';   // GitHub Pages (sem functions)   // GitHub Pages (sem functions)
       if (r.status === 403) return 'bot';   // Turnstile reprovou
       return 'ok';
     }).catch(function () { return 'ok'; }); // falha de rede não pune usuário real
