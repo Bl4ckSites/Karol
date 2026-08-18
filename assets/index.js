@@ -1,5 +1,5 @@
 // ============================================
-// INDEX.JS — Saída do WebView (versão final)
+// INDEX.JS — Pré-site + saída do WebView (seguro p/ humanos)
 // ============================================
 (function () {
   'use strict';
@@ -13,7 +13,6 @@
   var isInApp = /(Instagram|FBAN|FBAV|Messenger|TikTok|Twitter|Pinterest|Threads)/i.test(ua);
 
   var leftPage = false;
-  var modalShown = false;
 
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) leftPage = true;
@@ -47,27 +46,6 @@
     osc.onended = function () { osc.disconnect(); gain.disconnect(); };
   }
 
-  function playModalSound() {
-    var ctx = getAudioContext();
-    if (!ctx) return;
-    var now = ctx.currentTime;
-    [660, 880, 1100].forEach(function (freq, i) {
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      var start = now + i * 0.08;
-      var end = start + 0.2;
-      gain.gain.setValueAtTime(0.12, start);
-      gain.gain.exponentialRampToValueAtTime(0.001, end);
-      osc.start(start);
-      osc.stop(end);
-      osc.onended = function () { osc.disconnect(); gain.disconnect(); };
-    });
-  }
-
   // ---------- Ripple + vibração ----------
   function createRipple(e) {
     var target = e.currentTarget;
@@ -91,22 +69,77 @@
     if (navigator.vibrate) navigator.vibrate(p);
   }
 
-  function bindFeedback() {
-    document.querySelectorAll('.btn').forEach(function (el) {
-      el.addEventListener('click', function (e) {
-        playClickSound();
-        createRipple(e);
-        vibrate(10);
-      });
-    });
+  // ---------- Detecção de robô (SÓ UA/webdriver — não pune humano) ----------
+  function isBot() {
+    if (navigator.webdriver === true) return true;
+    return /bot|crawler|spider|headless|puppeteer|selenium|curl|wget|python-requests|scrapy|phantomjs/i.test(ua);
   }
 
-  // ---------- Detecção segura de automação ----------
-  function isSuspiciousBot() {
-    if (navigator.webdriver === true) return true;
-    if (/headlesschrome|puppeteer|selenium|phantomjs|crawler|spider/i.test(ua)) return true;
-    if (/python-requests|scrapy|curl\/|wget/i.test(ua)) return true;
-    return false;
+  function showBlock() {
+    document.body.innerHTML =
+      '<main class="page-index"><div class="block-card">' +
+        '<div class="block-icon">🔒</div>' +
+        '<h2 class="block-title">Acesso negado</h2>' +
+        '<p class="block-desc">Não foi possível confirmar que você é um visitante humano. Recarregue a página.</p>' +
+        '<button class="btn btn-primary" onclick="location.reload()">Tentar novamente</button>' +
+      '</div></main>';
+  }
+
+  // ---------- Saída do WebView ----------
+  function exitToExternal() {
+    if (isAndroid) {
+      window.location.href =
+        'intent://' + window.location.host + '/links.html#Intent;' +
+        'scheme=https;' +
+        'action=android.intent.action.VIEW;' +
+        'S.browser_fallback=' + encodeURIComponent(TARGET_ABS) + ';' +
+        'end';
+      setTimeout(function () {
+        if (!leftPage) window.location.href = TARGET_ABS;
+      }, 900);
+    } else if (isIOS) {
+      var w = window.open(TARGET_ABS, '_blank');
+      if (!w) window.location.href = TARGET_ABS;
+    } else {
+      window.location.href = TARGET_REL;
+    }
+  }
+
+  function showPresite() {
+    document.getElementById('loader').classList.add('hidden');
+    document.getElementById('presite').style.display = 'block';
+  }
+
+  function init() {
+    var btnAccess = document.getElementById('btnAccess');
+    btnAccess.addEventListener('click', function (e) {
+      playClickSound();
+      createRipple(e);
+      vibrate(10);
+      exitToExternal();
+    });
+
+    // Robô → segura
+    if (isBot()) { showBlock(); return; }
+
+    // Navegador comum → vai direto pros links
+    if (!isInApp) { window.location.replace(TARGET_REL); return; }
+
+    // Dentro do Instagram/TikTok/etc → mostra o PRÉ-SITE
+    showPresite();
+
+    // Android tenta sair sozinho; se falhar, o botão fica lá
+    if (isAndroid) {
+      setTimeout(function () { if (!leftPage) exitToExternal(); }, 600);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();    return false;
   }
 
   // ---------- UI ----------
