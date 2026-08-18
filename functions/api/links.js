@@ -13,13 +13,11 @@ const LINKS = [
 export async function onRequest(context) {
   const { request } = context;
 
-  // 1) Bloqueia ferramentas de scraping pelo User-Agent
   const ua = request.headers.get('User-Agent') || '';
   if (/curl|wget|python-requests|scrapy|headlesschrome|puppeteer|selenium|phantomjs|bot|crawler|spider/i.test(ua)) {
     return json({ error: 'Acesso negado' }, 403);
   }
 
-  // 2) Exige mesma origem ou header de requisição interna
   const url = new URL(request.url);
   const origin = request.headers.get('Origin') || '';
   const referer = request.headers.get('Referer') || '';
@@ -28,7 +26,6 @@ export async function onRequest(context) {
     return json({ error: 'Acesso negado' }, 403);
   }
 
-  // 3) Entrega os links (aceita GET e POST — nunca mais 405)
   return json({ links: LINKS, ts: Date.now() }, 200);
 }
 
