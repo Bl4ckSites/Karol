@@ -1,17 +1,15 @@
 // ============================================
-// INDEX.JS — Saída do WebView + proteção (otimizado)
+// INDEX.JS — Saída do WebView + proteção (FINAL)
 // ============================================
 (function () {
   'use strict';
 
   var TARGET_REL = './links.html';
   var TARGET_ABS = window.location.origin + '/links.html';
-
   var ua = navigator.userAgent || '';
   var isAndroid = /Android/i.test(ua);
   var isIOS = /iPhone|iPad|iPod/i.test(ua);
   var isInApp = /(Instagram|FBAN|FBAV|Messenger|TikTok|Twitter|Pinterest|Threads)/i.test(ua);
-
   var leftPage = false;
   var modalShown = false;
 
@@ -101,39 +99,19 @@
     });
   }
 
-  // ---------- Detecção de bot (500ms — rápido, seguro p/ celular) ----------
- function isBot() {
-  if (navigator.webdriver === true) return true;
-  return /bot|crawler|spider|headless|puppeteer|selenium|phantomjs|curl\/|wget|python-requests|scrapy|httpclient/i.test(ua);
-}
-    var hasInteraction = false;
-    function mark() { hasInteraction = true; }
-    document.addEventListener('mousemove', mark, { once: true });
-    document.addEventListener('touchstart', mark, { once: true, passive: true });
-    document.addEventListener('keydown', mark, { once: true });
-    document.addEventListener('pointerdown', mark, { once: true });
-
-    setTimeout(function () {
-      if (!hasInteraction) {
-        document.body.innerHTML =
-          '<main class="page-index"><div class="block-card">' +
-            '<div class="block-icon">🔒</div>' +
-            '<h2 class="block-title">Acesso negado</h2>' +
-            '<p class="block-desc">Não foi possível confirmar que você é um visitante humano. Recarregue a página.</p>' +
-            '<button class="btn btn-primary" onclick="location.reload()">Tentar novamente</button>' +
-          '</div></main>';
-      }
-    }, 500);
-
-    return false;
+  // ---------- Detecção de robô (SÓ automação — nunca pune humano) ----------
+  function isBot() {
+    if (navigator.webdriver === true) return true;
+    return /bot|crawler|spider|headless|puppeteer|selenium|phantomjs|curl\/|wget|python-requests|scrapy|httpclient/i.test(ua);
   }
 
-  // ---------- Modal estilizado ----------
   function showModal() {
     if (leftPage || modalShown) return;
     modalShown = true;
-    document.getElementById('loader').classList.add('hidden');
+    var loader = document.getElementById('loader');
+    if (loader) loader.classList.add('hidden');
     var modal = document.getElementById('modal');
+    if (!modal) return;
     modal.classList.add('show');
     playModalSound();
     vibrate(20);
@@ -170,23 +148,28 @@
   function init() {
     bindFeedback();
 
-    document.getElementById('btnYes').addEventListener('click', exitToExternal);
-    document.getElementById('btnNo').addEventListener('click', function () {
+    var btnYes = document.getElementById('btnYes');
+    var btnNo = document.getElementById('btnNo');
+    if (btnYes) btnYes.addEventListener('click', exitToExternal);
+    if (btnNo) btnNo.addEventListener('click', function () {
       this.textContent = 'Redirecionando...';
       this.disabled = true;
       setTimeout(exitToExternal, 250);
     });
 
-     if (isBot()) {
-    window.location.replace('./404.html');
-    return;
-  }
+    // Robô de automação → 404 (página "não existe")
+    if (isBot()) {
+      window.location.replace('./404.html');
+      return;
+    }
 
+    // Navegador comum → direto pros links
     if (!isInApp) {
       window.location.replace(TARGET_REL);
       return;
     }
 
+    // Dentro do Instagram/TikTok/etc.
     if (isAndroid) {
       setTimeout(function () { if (!leftPage) exitToExternal(); }, 400);
       setTimeout(showModal, 1600);
