@@ -1,5 +1,5 @@
 // ============================================
-// LINKS.JS — Performance otimizada + animações extras
+// LINKS.JS — FINAL (escapeHtml à prova de cópia)
 // ============================================
 (function () {
   'use strict';
@@ -15,10 +15,14 @@
 
   var SVG_CHEVRON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
 
+  // À prova de cópia: nenhum "&#...;" literal que possa ser corrompido
   function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, function (m) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
-    });
+    return String(s)
+      .replace(/&/g, '&' + 'amp;')
+      .replace(/</g, '&' + 'lt;')
+      .replace(/>/g, '&' + 'gt;')
+      .replace(/"/g, '&' + 'quot;')
+      .replace(/'/g, '&' + '#39;');
   }
 
   function iconHTML(icone) {
@@ -30,7 +34,6 @@
     var c = document.getElementById('linksContainer');
     if (!c) return;
     c.innerHTML = '';
-
     (links || []).forEach(function (l, i) {
       var a = document.createElement('a');
       a.href = l.url;
@@ -44,25 +47,18 @@
         '<span class="link-chevron" aria-hidden="true">' + SVG_CHEVRON + '</span>';
       c.appendChild(a);
     });
-
-    c.classList.add('visible');
     initMagneticEffect();
   }
 
-  // ---------- Efeito magnético leve (só desktop) ----------
   function initMagneticEffect() {
     if (!window.matchMedia('(hover: hover)').matches) return;
-
     document.querySelectorAll('.link-btn').forEach(function (btn) {
       btn.addEventListener('mousemove', function (e) {
         var rect = btn.getBoundingClientRect();
         var x = e.clientX - rect.left - rect.width / 2;
         var y = e.clientY - rect.top - rect.height / 2;
-        var moveX = (x / rect.width) * 4;
-        var moveY = (y / rect.height) * 4;
-        btn.style.transform = 'translate(' + moveX + 'px, ' + moveY + 'px) translateY(-3px) scale(1.02)';
+        btn.style.transform = 'translate(' + (x / rect.width) * 4 + 'px, ' + (y / rect.height) * 4 + 'px) translateY(-3px) scale(1.02)';
       });
-
       btn.addEventListener('mouseleave', function () {
         btn.style.transform = '';
       });
@@ -73,7 +69,7 @@
     return fetch('/api/links', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-       }).then(function (r) {
+    }).then(function (r) {
       if (r.status === 403) { var e = new Error('denied'); e.denied = true; throw e; }
       if (!r.ok) throw new Error('http ' + r.status);
       return r.json();
@@ -81,17 +77,19 @@
   }
 
   function init() {
-    // Fallback da foto
     var img = document.getElementById('profileImg');
     if (img) {
       img.addEventListener('error', function () {
         img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#1a1a1a"/><circle cx="60" cy="46" r="22" fill="#444"/><ellipse cx="60" cy="98" rx="34" ry="26" fill="#444"/></svg>'
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">' +
+          '<rect width="120" height="120" fill="#1a1a1a"/>' +
+          '<circle cx="60" cy="46" r="22" fill="#444"/>' +
+          '<ellipse cx="60" cy="98" rx="34" ry="26" fill="#444"/>' +
+          '</svg>'
         );
       });
     }
 
-    // Ripple (delegado)
     var container = document.getElementById('linksContainer');
     if (container) {
       container.addEventListener('pointerdown', function (e) {
@@ -109,13 +107,13 @@
       });
     }
 
-    // API com fallback
     fetchLinks()
-    .then(function (d) { renderLinks(d.links); })
-    .catch(function (e) {
-      if (e && e.denied) return;   // robô negado fica no "Carregando..."
-      renderLinks(DEV_LINKS);
-    });
+      .then(function (d) { renderLinks(d.links); })
+      .catch(function (e) {
+        if (e && e.denied) return; // robô negado não recebe nada
+        renderLinks(DEV_LINKS);
+      });
+  }
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
