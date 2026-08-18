@@ -314,3 +314,21 @@ body::before {
   color: #666666;
   text-transform: uppercase;
 }
+
+/* ---------- Animação de gradiente no nome ---------- */
+.name {
+  background: linear-gradient(90deg, 
+    var(--blue-900) 0%, 
+    var(--blue-500) 50%, 
+    var(--blue-900) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 3s ease infinite, fadeInUp 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) 0.3s forwards;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 100% center; }
+}
