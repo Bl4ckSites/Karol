@@ -1,3 +1,6 @@
+// ============================================
+// API /api/links — só entrega após prova de humano
+// ============================================
 const LINKS = [
   { id: '1', titulo: 'Privacy 50% OFF', url: 'https://privacy.com.br/checkout/soykarolinareal', icone: 'icone-privacy.png' },
   { id: '2', titulo: 'Grupo VIP', url: 'https://t.me/Soykarolinareal_bot?start=biositesoykarolinareal', icone: 'icone-telegram.png' },
