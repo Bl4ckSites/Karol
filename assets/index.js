@@ -1,22 +1,25 @@
 // ============================================
-// INDEX.JS — FINAL: bot→404 | humano→pré-site
+// INDEX.JS — Saída do WebView + proteção (otimizado)
 // ============================================
 (function () {
   'use strict';
 
   var TARGET_REL = './links.html';
   var TARGET_ABS = window.location.origin + '/links.html';
+
   var ua = navigator.userAgent || '';
   var isAndroid = /Android/i.test(ua);
   var isIOS = /iPhone|iPad|iPod/i.test(ua);
   var isInApp = /(Instagram|FBAN|FBAV|Messenger|TikTok|Twitter|Pinterest|Threads)/i.test(ua);
+
   var leftPage = false;
-  var presiteShown = false;
+  var modalShown = false;
 
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) leftPage = true;
   });
 
+  // ---------- Áudio ----------
   var audioCtx = null;
   function getAudioContext() {
     if (!audioCtx) {
@@ -44,6 +47,28 @@
     osc.onended = function () { osc.disconnect(); gain.disconnect(); };
   }
 
+  function playModalSound() {
+    var ctx = getAudioContext();
+    if (!ctx) return;
+    var now = ctx.currentTime;
+    [660, 880, 1100].forEach(function (freq, i) {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      var start = now + i * 0.08;
+      var end = start + 0.2;
+      gain.gain.setValueAtTime(0.12, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, end);
+      osc.start(start);
+      osc.stop(end);
+      osc.onended = function () { osc.disconnect(); gain.disconnect(); };
+    });
+  }
+
+  // ---------- Ripple + vibração ----------
   function createRipple(e) {
     var target = e.currentTarget;
     if (!target) return;
@@ -66,19 +91,61 @@
     if (navigator.vibrate) navigator.vibrate(p);
   }
 
-  // Só automação — NUNCA pune humano (sem armadilha de mouse)
-  function isBot() {
-    if (navigator.webdriver === true) return true;
-    return /bot|crawler|spider|headless|puppeteer|selenium|phantomjs|curl\/|wget|python-requests|scrapy|httpclient/i.test(ua);
+  function bindFeedback() {
+    document.querySelectorAll('.btn').forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        playClickSound();
+        createRipple(e);
+        vibrate(10);
+      });
+    });
   }
 
-  function showPresite() {
-    if (presiteShown) return;
-    presiteShown = true;
-    var loader = document.getElementById('loader');
-    var presite = document.getElementById('presite');
-    if (loader) loader.classList.add('hidden');
-    if (presite) presite.style.display = 'block';
+  // ---------- Detecção de bot (500ms — rápido, seguro p/ celular) ----------
+  function isBot() {
+    if (navigator.webdriver === true) return true;
+    if (/bot|crawler|spider|headless|puppeteer|selenium|curl|wget|python/i.test(ua)) return true;
+
+    var hasInteraction = false;
+    function mark() { hasInteraction = true; }
+    document.addEventListener('mousemove', mark, { once: true });
+    document.addEventListener('touchstart', mark, { once: true, passive: true });
+    document.addEventListener('keydown', mark, { once: true });
+    document.addEventListener('pointerdown', mark, { once: true });
+
+    setTimeout(function () {
+      if (!hasInteraction) {
+        document.body.innerHTML =
+          '<main class="page-index"><div class="block-card">' +
+            '<div class="block-icon">🔒</div>' +
+            '<h2 class="block-title">Acesso negado</h2>' +
+            '<p class="block-desc">Não foi possível confirmar que você é um visitante humano. Recarregue a página.</p>' +
+            '<button class="btn btn-primary" onclick="location.reload()">Tentar novamente</button>' +
+          '</div></main>';
+      }
+    }, 500);
+
+    return false;
+  }
+
+  // ---------- Modal estilizado ----------
+  function showModal() {
+    if (leftPage || modalShown) return;
+    modalShown = true;
+    document.getElementById('loader').classList.add('hidden');
+    var modal = document.getElementById('modal');
+    modal.classList.add('show');
+    playModalSound();
+    vibrate(20);
+    modal.querySelectorAll('.btn').forEach(function (b, i) {
+      b.style.opacity = '0';
+      b.style.transform = 'translateY(10px)';
+      setTimeout(function () {
+        b.style.transition = 'opacity .3s ease, transform .3s ease';
+        b.style.opacity = '1';
+        b.style.transform = 'none';
+      }, 100 + i * 100);
+    });
   }
 
   function exitToExternal() {
@@ -101,22 +168,30 @@
   }
 
   function init() {
-    var btnAccess = document.getElementById('btnAccess');
-    if (btnAccess) {
-      btnAccess.addEventListener('click', function (e) {
-        playClickSound();
-        createRipple(e);
-        vibrate(10);
-        exitToExternal();
-      });
+    bindFeedback();
+
+    document.getElementById('btnYes').addEventListener('click', exitToExternal);
+    document.getElementById('btnNo').addEventListener('click', function () {
+      this.textContent = 'Redirecionando...';
+      this.disabled = true;
+      setTimeout(exitToExternal, 250);
+    });
+
+    if (isBot()) {
+      window.location.href = 'https://www.google.com';
+      return;
     }
 
-    if (isBot()) { window.location.replace('./404.html'); return; }
+    if (!isInApp) {
+      window.location.replace(TARGET_REL);
+      return;
+    }
 
-    setTimeout(showPresite, 800);
-
-    if (isInApp && isAndroid) {
-      setTimeout(function () { if (!leftPage) exitToExternal(); }, 600);
+    if (isAndroid) {
+      setTimeout(function () { if (!leftPage) exitToExternal(); }, 400);
+      setTimeout(showModal, 1600);
+    } else if (isIOS) {
+      setTimeout(showModal, 700);
     }
   }
 
