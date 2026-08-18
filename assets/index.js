@@ -102,10 +102,10 @@
   }
 
   // ---------- Detecção de bot (500ms — rápido, seguro p/ celular) ----------
-  function isBot() {
-    if (navigator.webdriver === true) return true;
-    if (/bot|crawler|spider|headless|puppeteer|selenium|curl|wget|python/i.test(ua)) return true;
-
+ function isBot() {
+  if (navigator.webdriver === true) return true;
+  return /bot|crawler|spider|headless|puppeteer|selenium|phantomjs|curl\/|wget|python-requests|scrapy|httpclient/i.test(ua);
+}
     var hasInteraction = false;
     function mark() { hasInteraction = true; }
     document.addEventListener('mousemove', mark, { once: true });
@@ -177,10 +177,10 @@
       setTimeout(exitToExternal, 250);
     });
 
-    if (isBot()) {
-      window.location.href = 'https://www.google.com';
-      return;
-    }
+     if (isBot()) {
+    window.location.replace('./404.html');
+    return;
+  }
 
     if (!isInApp) {
       window.location.replace(TARGET_REL);
