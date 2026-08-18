@@ -1,18 +1,15 @@
 // ============================================
-// INDEX.JS — Pré-site + saída do WebView (FINAL)
-// Bot → 404.html | Humano → "Carregando" → botão
+// INDEX.JS — FINAL: bot→404 | humano→pré-site
 // ============================================
 (function () {
   'use strict';
 
   var TARGET_REL = './links.html';
   var TARGET_ABS = window.location.origin + '/links.html';
-
   var ua = navigator.userAgent || '';
   var isAndroid = /Android/i.test(ua);
   var isIOS = /iPhone|iPad|iPod/i.test(ua);
   var isInApp = /(Instagram|FBAN|FBAV|Messenger|TikTok|Twitter|Pinterest|Threads)/i.test(ua);
-
   var leftPage = false;
   var presiteShown = false;
 
@@ -20,7 +17,6 @@
     if (document.hidden) leftPage = true;
   });
 
-  // ---------- Áudio ----------
   var audioCtx = null;
   function getAudioContext() {
     if (!audioCtx) {
@@ -48,7 +44,6 @@
     osc.onended = function () { osc.disconnect(); gain.disconnect(); };
   }
 
-  // ---------- Ripple + vibração ----------
   function createRipple(e) {
     var target = e.currentTarget;
     if (!target) return;
@@ -71,14 +66,10 @@
     if (navigator.vibrate) navigator.vibrate(p);
   }
 
-  // ---------- Detecção de robô (SÓ automação — nunca pune humano) ----------
+  // Só automação — NUNCA pune humano (sem armadilha de mouse)
   function isBot() {
     if (navigator.webdriver === true) return true;
     return /bot|crawler|spider|headless|puppeteer|selenium|phantomjs|curl\/|wget|python-requests|scrapy|httpclient/i.test(ua);
-  }
-
-  function sendBotTo404() {
-    window.location.replace('./404.html');
   }
 
   function showPresite() {
@@ -90,7 +81,6 @@
     if (presite) presite.style.display = 'block';
   }
 
-  // ---------- Saída do WebView ----------
   function exitToExternal() {
     if (isAndroid) {
       window.location.href =
@@ -110,7 +100,6 @@
     }
   }
 
-  // ---------- Inicialização ----------
   function init() {
     var btnAccess = document.getElementById('btnAccess');
     if (btnAccess) {
@@ -122,126 +111,12 @@
       });
     }
 
-    // 1) Robô de automação → 404 (página "não existe")
-    if (isBot()) { sendBotTo404(); return; }
+    if (isBot()) { window.location.replace('./404.html'); return; }
 
-    // 2) Humano: "Carregando..." por ~0,8s → pré-site com botão (para TODOS)
     setTimeout(showPresite, 800);
 
-    // 3) Android dentro do Instagram: tenta sair sozinho antes;
-    //    se falhar, o botão continua lá
     if (isInApp && isAndroid) {
       setTimeout(function () { if (!leftPage) exitToExternal(); }, 600);
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();    document.getElementById('loader').classList.add('hidden');
-    document.getElementById('presite').style.display = 'block';
-  }
-
-  function init() {
-    var btnAccess = document.getElementById('btnAccess');
-    btnAccess.addEventListener('click', function (e) {
-      playClickSound();
-      createRipple(e);
-      vibrate(10);
-      exitToExternal();
-    });
-
-    // Robô → segura
-    if (isBot()) { showBlock(); return; }
-
-    // Navegador comum → vai direto pros links
-    if (!isInApp) { window.location.replace(TARGET_REL); return; }
-
-    // Dentro do Instagram/TikTok/etc → mostra o PRÉ-SITE
-    showPresite();
-
-    // Android tenta sair sozinho; se falhar, o botão fica lá
-    if (isAndroid) {
-      setTimeout(function () { if (!leftPage) exitToExternal(); }, 600);
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();    return false;
-  }
-
-  // ---------- UI ----------
-  function showModal() {
-    if (leftPage || modalShown) return;
-    modalShown = true;
-    document.getElementById('loader').classList.add('hidden');
-    var modal = document.getElementById('modal');
-    modal.classList.add('show');
-    playModalSound();
-    vibrate(20);
-    modal.querySelectorAll('.btn').forEach(function (b, i) {
-      b.style.opacity = '0';
-      b.style.transform = 'translateY(10px)';
-      setTimeout(function () {
-        b.style.transition = 'opacity .3s ease, transform .3s ease';
-        b.style.opacity = '1';
-        b.style.transform = 'none';
-      }, 100 + i * 100);
-    });
-  }
-
-  // ---------- Saída do WebView ----------
-  function exitToExternal() {
-    if (isAndroid) {
-      window.location.href =
-        'intent://' + window.location.host + '/links.html#Intent;' +
-        'scheme=https;' +
-        'action=android.intent.action.VIEW;' +
-        'S.browser_fallback=' + encodeURIComponent(TARGET_ABS) + ';' +
-        'end';
-      setTimeout(function () {
-        if (!leftPage) window.location.href = TARGET_ABS;
-      }, 900);
-    } else if (isIOS) {
-      var w = window.open(TARGET_ABS, '_blank');
-      if (!w) window.location.href = TARGET_ABS;
-    } else {
-      window.location.href = TARGET_REL;
-    }
-  }
-
-  // ---------- Init ----------
-  function init() {
-    bindFeedback();
-
-    document.getElementById('btnYes').addEventListener('click', exitToExternal);
-    document.getElementById('btnNo').addEventListener('click', function () {
-      this.textContent = 'Redirecionando...';
-      this.disabled = true;
-      setTimeout(exitToExternal, 250);
-    });
-
-    if (isSuspiciousBot()) {
-      window.location.href = 'https://www.google.com';
-      return;
-    }
-
-    if (!isInApp) {
-      window.location.replace(TARGET_REL);
-      return;
-    }
-
-    if (isAndroid) {
-      setTimeout(function () { if (!leftPage) exitToExternal(); }, 400);
-      setTimeout(showModal, 1600);
-    } else if (isIOS) {
-      setTimeout(showModal, 700);
     }
   }
 
