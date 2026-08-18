@@ -402,5 +402,28 @@ body::before {
   }
 }
 
+/* ============================================
+   PRÉ-SITE (estilo bio.site)
+   ============================================ */
 
+.presite { text-align: center; }
+
+.btn-access {
+  margin-top: 26px;
+  width: 100%;
+  max-width: 340px;
+  padding: 16px 22px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  animation: accessPulse 2s ease-in-out infinite;
+}
+
+@keyframes accessPulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(47, 128, 208, 0.35); transform: scale(1); }
+  50%      { box-shadow: 0 8px 34px rgba(47, 128, 208, 0.55); transform: scale(1.03); }
+}
+
+.btn-access:active { transform: scale(0.97); }
 
