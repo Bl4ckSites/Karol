@@ -1,5 +1,5 @@
 // ============================================
-// LINKS.JS — à prova de falhas (sem Turnstile)
+// LINKS.JS — Performance otimizada + animações extras
 // ============================================
 (function () {
   'use strict';
@@ -21,27 +21,51 @@
     });
   }
 
-  // Se o ícone for um SVG (começa com <svg), usa direto; senão, usa <img>
   function iconHTML(icone) {
     if (icone && icone.indexOf('<svg') === 0) return icone;
-    return '<img src="' + icone + '" alt="">';
+    return '<img src="' + icone + '" alt="" loading="lazy" decoding="async">';
   }
 
   function renderLinks(links) {
     var c = document.getElementById('linksContainer');
     if (!c) return;
     c.innerHTML = '';
-    (links || []).forEach(function (l) {
+
+    (links || []).forEach(function (l, i) {
       var a = document.createElement('a');
       a.href = l.url;
       a.className = 'link-btn';
       a.target = '_blank';
       a.rel = 'noopener noreferrer';
+      a.style.animationDelay = (0.3 + i * 0.15) + 's';
       a.innerHTML =
         '<span class="link-icon" aria-hidden="true">' + iconHTML(l.icone) + '</span>' +
         '<span class="link-label">' + escapeHtml(l.titulo) + '</span>' +
         '<span class="link-chevron" aria-hidden="true">' + SVG_CHEVRON + '</span>';
       c.appendChild(a);
+    });
+
+    c.classList.add('visible');
+    initMagneticEffect();
+  }
+
+  // ---------- Efeito magnético leve (só desktop) ----------
+  function initMagneticEffect() {
+    if (!window.matchMedia('(hover: hover)').matches) return;
+
+    document.querySelectorAll('.link-btn').forEach(function (btn) {
+      btn.addEventListener('mousemove', function (e) {
+        var rect = btn.getBoundingClientRect();
+        var x = e.clientX - rect.left - rect.width / 2;
+        var y = e.clientY - rect.top - rect.height / 2;
+        var moveX = (x / rect.width) * 4;
+        var moveY = (y / rect.height) * 4;
+        btn.style.transform = 'translate(' + moveX + 'px, ' + moveY + 'px) translateY(-3px) scale(1.02)';
+      });
+
+      btn.addEventListener('mouseleave', function () {
+        btn.style.transform = '';
+      });
     });
   }
 
@@ -84,7 +108,7 @@
       });
     }
 
-    // Busca na API; se falhar, mostra os links do mesmo jeito
+    // API com fallback
     fetchLinks()
       .then(function (d) { renderLinks(d.links); })
       .catch(function () { renderLinks(DEV_LINKS); });
