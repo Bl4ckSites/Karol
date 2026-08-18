@@ -1,6 +1,6 @@
 // ============================================
 // MIDDLEWARE GLOBAL — CORS + headers de segurança
-// ⚠️ O nome do arquivo DEVE ser exatamente _middleware.js
+// ⚠️ Nome do arquivo DEVE ser exatamente _middleware.js
 // ============================================
 export async function onRequest(context) {
   const { request, next } = context;
