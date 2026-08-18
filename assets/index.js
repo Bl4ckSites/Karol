@@ -1,5 +1,6 @@
 // ============================================
-// INDEX.JS — Pré-site + saída do WebView (seguro p/ humanos)
+// INDEX.JS — Pré-site + saída do WebView (FINAL)
+// Bot → 404.html | Humano → "Carregando" → botão
 // ============================================
 (function () {
   'use strict';
@@ -13,6 +14,7 @@
   var isInApp = /(Instagram|FBAN|FBAV|Messenger|TikTok|Twitter|Pinterest|Threads)/i.test(ua);
 
   var leftPage = false;
+  var presiteShown = false;
 
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) leftPage = true;
@@ -69,20 +71,23 @@
     if (navigator.vibrate) navigator.vibrate(p);
   }
 
-  // ---------- Detecção de robô (SÓ UA/webdriver — não pune humano) ----------
+  // ---------- Detecção de robô (SÓ automação — nunca pune humano) ----------
   function isBot() {
     if (navigator.webdriver === true) return true;
-    return /bot|crawler|spider|headless|puppeteer|selenium|curl|wget|python-requests|scrapy|phantomjs/i.test(ua);
+    return /bot|crawler|spider|headless|puppeteer|selenium|phantomjs|curl\/|wget|python-requests|scrapy|httpclient/i.test(ua);
   }
 
-  function showBlock() {
-    document.body.innerHTML =
-      '<main class="page-index"><div class="block-card">' +
-        '<div class="block-icon">🔒</div>' +
-        '<h2 class="block-title">Acesso negado</h2>' +
-        '<p class="block-desc">Não foi possível confirmar que você é um visitante humano. Recarregue a página.</p>' +
-        '<button class="btn btn-primary" onclick="location.reload()">Tentar novamente</button>' +
-      '</div></main>';
+  function sendBotTo404() {
+    window.location.replace('./404.html');
+  }
+
+  function showPresite() {
+    if (presiteShown) return;
+    presiteShown = true;
+    var loader = document.getElementById('loader');
+    var presite = document.getElementById('presite');
+    if (loader) loader.classList.add('hidden');
+    if (presite) presite.style.display = 'block';
   }
 
   // ---------- Saída do WebView ----------
@@ -105,8 +110,37 @@
     }
   }
 
-  function showPresite() {
-    document.getElementById('loader').classList.add('hidden');
+  // ---------- Inicialização ----------
+  function init() {
+    var btnAccess = document.getElementById('btnAccess');
+    if (btnAccess) {
+      btnAccess.addEventListener('click', function (e) {
+        playClickSound();
+        createRipple(e);
+        vibrate(10);
+        exitToExternal();
+      });
+    }
+
+    // 1) Robô de automação → 404 (página "não existe")
+    if (isBot()) { sendBotTo404(); return; }
+
+    // 2) Humano: "Carregando..." por ~0,8s → pré-site com botão (para TODOS)
+    setTimeout(showPresite, 800);
+
+    // 3) Android dentro do Instagram: tenta sair sozinho antes;
+    //    se falhar, o botão continua lá
+    if (isInApp && isAndroid) {
+      setTimeout(function () { if (!leftPage) exitToExternal(); }, 600);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();    document.getElementById('loader').classList.add('hidden');
     document.getElementById('presite').style.display = 'block';
   }
 
