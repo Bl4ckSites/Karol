@@ -10,16 +10,12 @@
 </head>
 <body class="page-index">
   <main class="center-wrap">
-    <h1 class="error-code">404</h1>
-    <p class="loader-sub">Página não encontrada.</p>
-    <p style="margin-top:20px;">
+    <div class="block-card">
+      <div class="block-icon">🧭</div>
+      <h1 class="error-code">404</h1>
+      <p class="block-desc">Página não encontrada.</p>
       <a href="/" class="btn btn-primary" style="display:inline-block;text-decoration:none;">Voltar ao início</a>
-    </p>
+    </div>
   </main>
-  <script>
-    setTimeout(function () {
-      if (window.location.pathname !== '/') window.location.href = '/';
-    }, 5000);
-  </script>
 </body>
 </html>
