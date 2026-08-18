@@ -8,7 +8,6 @@
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta name="theme-color" content="#000000">
 
-  <link rel="preconnect" href="https://challenges.cloudflare.com">
   <link rel="preload" href="./assets/styles.css" as="style">
   <link rel="preload" href="./assets/profile.avif" as="image" type="image/avif">
 
@@ -19,14 +18,14 @@
 
   <main class="center-wrap">
 
-    <!-- Loader (só aparece um instante fora de apps) -->
+    <!-- Tela de carregamento (verificações rodando) -->
     <div class="loader-card" id="loader">
       <div class="spinner" aria-hidden="true"></div>
-      <h1 class="loader-title">Abrindo...</h1>
-      <p class="loader-sub">Preparando sua experiência ✨</p>
+      <h1 class="loader-title">Carregando...</h1>
+      <p class="loader-sub">Verificando acesso ✨</p>
     </div>
 
-    <!-- PRÉ-SITE (estilo bio.site) -->
+    <!-- PRÉ-SITE (aparece para humanos após a checagem) -->
     <div class="presite" id="presite" style="display:none;">
       <div class="profile-wrap">
         <img class="profile-img" src="./assets/profile.avif"
@@ -44,7 +43,7 @@
         </span>
       </div>
       <button class="btn btn-primary btn-access" id="btnAccess">Clique aqui para acessar!</button>
-      <p class="modal-hint">Conteúdo</p>
+      <p class="presite-hint">Conteúdo exclusivo 🔒</p>
     </div>
 
   </main>
