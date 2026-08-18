@@ -73,7 +73,8 @@
     return fetch('/api/links', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
-    }).then(function (r) {
+       }).then(function (r) {
+      if (r.status === 403) { var e = new Error('denied'); e.denied = true; throw e; }
       if (!r.ok) throw new Error('http ' + r.status);
       return r.json();
     });
@@ -110,9 +111,11 @@
 
     // API com fallback
     fetchLinks()
-      .then(function (d) { renderLinks(d.links); })
-      .catch(function () { renderLinks(DEV_LINKS); });
-  }
+    .then(function (d) { renderLinks(d.links); })
+    .catch(function (e) {
+      if (e && e.denied) return;   // robô negado fica no "Carregando..."
+      renderLinks(DEV_LINKS);
+    });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
