@@ -1,17 +1,16 @@
 // ============================================
-// LINKS.JS — Links liberados só após Turnstile
+// LINKS.JS — à prova de falhas (sem Turnstile)
 // ============================================
 (function () {
   'use strict';
 
-  var TURNSTILE_SITEKEY = '0x4AAAAAAETGQQDnmnyVj3A0';
+  var SVG_WHATS = '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="24" fill="#25D366"/><path fill="#fff" d="M24 10c-7.7 0-14 6.1-14 13.7 0 3 .9 5.7 2.6 8L11 38l6.5-1.7c2 1 4.2 1.5 6.5 1.5 7.7 0 14-6.1 14-13.7S31.7 10 24 10z"/><path fill="#25D366" d="M19.2 17.4c-.3-.7-.6-.7-.9-.7h-.8c-.3 0-.7.1-1 .5-.4.4-1.4 1.3-1.4 3.2s1.4 3.7 1.6 4c.2.3 2.8 4.4 6.9 6 3.4 1.3 4.1 1 4.8 1 .7-.1 2.3-.9 2.6-1.8.3-.9.3-1.7.2-1.8-.1-.2-.4-.3-.8-.5s-2.3-1.1-2.6-1.2c-.4-.1-.6-.2-.9.2-.3.4-1 1.2-1.2 1.5-.2.3-.4.3-.8.1-.4-.2-1.6-.6-3.1-1.9-1.1-1-1.9-2.2-2.1-2.6-.2-.4 0-.6.2-.8l.6-.7c.2-.2.3-.4.4-.7.1-.3.1-.5 0-.7-.1-.2-.9-2.2-1.7-3.1z"/></svg>';
 
-  // Só para teste no github.io (onde a API não existe)
   var DEV_LINKS = [
-    { id: '1', titulo: 'Privacy 50% OFF', url: 'https://privacy.com.br/checkout/soykarolinareal', icone: 'icone-privacy.png' },
-    { id: '2', titulo: 'Grupo VIP', url: 'https://t.me/Soykarolinareal_bot?start=biositesoykarolinareal', icone: 'icone-telegram.png' },
-    { id: '3', titulo: 'Packs e Chamada de Vídeo', url: 'https://serverflow.dad/c/whatsapp-karol', icone: 'icone-whatsapp.png' },
-    { id: '4', titulo: 'OnlyFans', url: 'https://onlyfans.com/karolinaofc/c2', icone: 'icone-onlyfans.png' }
+    { id: '1', titulo: 'Privacy 50% OFF', url: 'https://privacy.com.br/checkout/soykarolinareal', icone: 'icone-onlyfans.avif' },
+    { id: '2', titulo: 'Grupo VIP', url: 'https://t.me/Soykarolinareal_bot?start=biositesoykarolinareal', icone: 'icone-telegram.avif' },
+    { id: '3', titulo: 'Packs e Chamada de Vídeo', url: 'https://serverflow.dad/c/whatsapp-karol', icone: SVG_WHATS },
+    { id: '4', titulo: 'OnlyFans', url: 'https://onlyfans.com/karolinaofc/c2', icone: 'icone-twitter.avif' }
   ];
 
   var SVG_CHEVRON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
@@ -22,8 +21,10 @@
     });
   }
 
-  function isDevHost() {
-    return /github\.io$|localhost|127\.0\.0\.1/.test(window.location.hostname);
+  // Se o ícone for um SVG (começa com <svg), usa direto; senão, usa <img>
+  function iconHTML(icone) {
+    if (icone && icone.indexOf('<svg') === 0) return icone;
+    return '<img src="' + icone + '" alt="">';
   }
 
   function renderLinks(links) {
@@ -37,56 +38,20 @@
       a.target = '_blank';
       a.rel = 'noopener noreferrer';
       a.innerHTML =
-        '<span class="link-icon" aria-hidden="true"><img src="' + l.icone + '" alt=""></span>' +
+        '<span class="link-icon" aria-hidden="true">' + iconHTML(l.icone) + '</span>' +
         '<span class="link-label">' + escapeHtml(l.titulo) + '</span>' +
         '<span class="link-chevron" aria-hidden="true">' + SVG_CHEVRON + '</span>';
       c.appendChild(a);
     });
   }
 
-  function showError() {
-    var c = document.getElementById('linksContainer');
-    c.innerHTML = '';
-    var p = document.createElement('p');
-    p.className = 'error';
-    p.textContent = 'Falha na verificação.';
-    var b = document.createElement('button');
-    b.className = 'btn btn-ghost';
-    b.textContent = 'Tentar novamente';
-    b.addEventListener('click', function () { window.location.reload(); });
-    p.appendChild(b);
-    c.appendChild(p);
-  }
-
-  function fetchLinks(token) {
+  function fetchLinks() {
     return fetch('/api/links', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-      body: JSON.stringify({ turnstile: token })
+      headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
     }).then(function (r) {
       if (!r.ok) throw new Error('http ' + r.status);
       return r.json();
-    });
-  }
-
-  function startGate() {
-    function wait(cb, tries) {
-      if (window.turnstile) return cb(true);
-      if ((tries || 0) > 40) return cb(false);
-      setTimeout(function () { wait(cb, (tries || 0) + 1); }, 100);
-    }
-    wait(function (ok) {
-      if (!ok) { showError(); return; }
-      try {
-        window.turnstile.render(document.getElementById('turnstileBoxLinks'), {
-          sitekey: TURNSTILE_SITEKEY,
-          callback: function (token) {
-            fetchLinks(token).then(function (d) { renderLinks(d.links); }).catch(showError);
-          },
-          'error-callback': showError,
-          'expired-callback': showError
-        });
-      } catch (e) { showError(); }
     });
   }
 
@@ -119,8 +84,10 @@
       });
     }
 
-    if (isDevHost()) renderLinks(DEV_LINKS);
-    else startGate();
+    // Busca na API; se falhar, mostra os links do mesmo jeito
+    fetchLinks()
+      .then(function (d) { renderLinks(d.links); })
+      .catch(function () { renderLinks(DEV_LINKS); });
   }
 
   if (document.readyState === 'loading') {
