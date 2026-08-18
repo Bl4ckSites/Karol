@@ -1,6 +1,6 @@
 // ============================================
 // ERROR HANDLER GLOBAL
-// ⚠️ O nome do arquivo DEVE ser exatamente _error.js
+// ⚠️ Nome do arquivo DEVE ser exatamente _error.js
 // ============================================
 export async function onError(context) {
   const { error } = context;
