@@ -220,3 +220,97 @@ body::before {
 
 
 .link-icon svg { width: 100%; height: 100%; display: block; }
+
+/* ============================================
+   AVISO DE BLOQUEIO (anti-robô)
+   ============================================ */
+
+.block-card {
+  text-align: center;
+  max-width: 380px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  background: #141414;
+  border: 1px solid #2c2c2c;
+  border-radius: 22px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  animation: modalPop 0.4s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.block-icon {
+  font-size: 2.4rem;
+  margin-bottom: 12px;
+}
+
+.block-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.block-desc {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: #9aa0a6;
+  margin-bottom: 22px;
+}
+
+
+
+/* ============================================
+   MODAL DE REDIRECIONAMENTO (estilizado)
+   ============================================ */
+
+.modal {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.modal-card {
+  background: #141414;
+  border: 1px solid #2c2c2c;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(47, 128, 208, 0.15);
+}
+
+/* Ícone de globo com brilho pulsante */
+.modal-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #2f80d0;
+  background: rgba(47, 128, 208, 0.12);
+  border: 1px solid rgba(47, 128, 208, 0.35);
+  box-shadow: 0 0 24px rgba(47, 128, 208, 0.25);
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+@keyframes iconPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 24px rgba(47, 128, 208, 0.25); }
+  50%      { transform: scale(1.06); box-shadow: 0 0 34px rgba(47, 128, 208, 0.4); }
+}
+
+.modal-title { color: #ffffff; }
+.modal-desc  { color: #9aa0a6; }
+
+.modal-actions .btn-primary {
+  background: linear-gradient(135deg, #2f80d0, #1e5fa8);
+  box-shadow: 0 8px 24px rgba(47, 128, 208, 0.35);
+}
+
+.modal-actions .btn-ghost {
+  background: transparent;
+  color: #cccccc;
+  border: 1.5px solid #444444;
+}
+
+.modal-hint {
+  margin-top: 14px;
+  font-size: 0.72rem;
+  letter-spacing: 0.6px;
+  color: #666666;
+  text-transform: uppercase;
+}
