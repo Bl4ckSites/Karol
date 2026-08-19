@@ -684,3 +684,11 @@ body::before {
 
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ===== TÍTULO 100% BRANCO (tela inicial) ===== */
+    .brand,
+    .brand span {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      background: none !important;
+    }
